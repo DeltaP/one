@@ -2,7 +2,8 @@
  * Gregory Petropoulos
  *
  * Ring Hello World Program
- *
+ * To compile:  mpicxx -g -Wall -std=c99 -o ring_hello ring_hello.cpp
+ * To run:  mpiexec -n 4 ./ring_hello
  */
 
 #include <stdio.h>
@@ -23,27 +24,12 @@ int main(void) {
 
   int to   = (my_rank+1)%comm_sz;
   int from = (my_rank-1+comm_sz)%comm_sz;
+  sprintf(message, "Greetings from process %d of %d", my_rank, comm_sz);
 
-  if (my_rank ==0) {
-    printf("Process %d sending to %d\n", my_rank, to);
-	  sprintf(message, "Greetings from process %d of %d", my_rank, comm_sz);
-    MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
-  }
-
-  do {
-    MPI_Recv(message, MAX_STRING, MPI_CHAR, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    printf("%s\n", message);
-    printf("Process %d sending to %d\n", my_rank, to);
-    MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
+  MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
+  MPI_Recv(message, MAX_STRING, MPI_CHAR, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  printf("%s | reported by process %d of %d\n", message, my_rank, comm_sz);
     
-  } while (to!=0);
-  
-  if (my_rank==0) {
-    MPI_Recv(message, MAX_STRING, MPI_CHAR, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    printf("%s\n", message);
-    printf("DONE!\n");
-  }
-
   MPI_Finalize();
   return 0;
 }
