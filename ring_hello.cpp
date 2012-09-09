@@ -26,8 +26,9 @@ int main(void) {
   int from = (my_rank-1+comm_sz)%comm_sz;
   sprintf(message, "Greetings from process %d of %d", my_rank, comm_sz);
 
-  MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
+  //MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
   MPI_Recv(message, MAX_STRING, MPI_CHAR, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  MPI_Send(message, strlen(message)+1, MPI_CHAR, to, 0, MPI_COMM_WORLD);
   printf("%s | reported by process %d of %d\n", message, my_rank, comm_sz);
     
   MPI_Finalize();
