@@ -1,4 +1,5 @@
 ring_hello
 serial_simpson
+parallel_simpson
 
 *.dSYM

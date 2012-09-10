@@ -1,6 +1,6 @@
 MPICXX=mpicxx
 CXX=g++
-CXXFLAGS  = -g -Wall -std=c99 -Wextra -pedantic
+CXXFLAGS  = -g -Wall -std=c99 -Wextra
 
 INCLUDES =
 

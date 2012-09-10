@@ -13,7 +13,7 @@ using namespace std;
 double f_x(double x) {
   double value;
 
-  value=x;
+  value=2*pow(x,5)-15*pow(x,3);
   return value;
 }
 
@@ -27,7 +27,7 @@ double simpson (double local_p, double local_q, double h) {
 }
 
 int main(void) {
-  double p, q, local_n, local_a, local_b, local_result, global_result;
+  double p, q, local_h, local_n, local_a, local_b, local_result, global_result;
   int i, my_rank, comm_sz;
   double* a = (double*) malloc(sizeof(double));
   double* b = (double*) malloc(sizeof(double));
@@ -66,8 +66,9 @@ int main(void) {
   local_result=0;
   p=local_a;
   q=p+(local_b-local_a)/local_n;
+  local_h=(q-p)/2;
   for(i=0; i<local_n; i++) {
-    local_result+=simpson(p,q,*h);
+    local_result+=simpson(p,q,local_h);
     p=q;
     q=p+(local_b-local_a)/local_n;
   }
