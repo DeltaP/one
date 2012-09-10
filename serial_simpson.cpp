@@ -1,7 +1,8 @@
 /*
  * This is the serial version of the Simpson Integration Program
  *
- * compile:  g++ -Wall -o serial_simpson serial_simpson.cpp
+ * To compile:  g++ -Wall -o serial_simpson serial_simpson.cpp
+ * To run:  ./serial_simpson
  */
 
 #include <stdio.h>
@@ -29,13 +30,11 @@ int main(void) {
   double a,b,p,q,h,result;
   int i,n;
   
-
+  //prompt for a,b,n
   cout << "Enter the beginning of the integration interval [a,b] 'a':\n";
   cin >> a;
-
   cout << "Enter the end of the integration interval [a,b] 'b':\n";
   cin >> b;
-
   cout << "Enter the number of intervals 'n':\n";
   cin >> n;
 
