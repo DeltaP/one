@@ -10,13 +10,20 @@
 #include <iostream>
 using namespace std;
 
+// -----------------------------------------------------------------
+// function we are integrating
 double f_x(double x) {
   double value;
 
   value=2*pow(x,5)-15*pow(x,3);
   return value;
 }
+// -----------------------------------------------------------------
 
+
+
+// -----------------------------------------------------------------
+// computes the volume of one element
 double simpson (double local_p, double local_q, double h) {
   double integral, r;
 
@@ -25,7 +32,12 @@ double simpson (double local_p, double local_q, double h) {
 
   return integral;
 }
+// -----------------------------------------------------------------
 
+
+
+// -----------------------------------------------------------------
+// the main program
 int main(void) {
   double p, q, local_h, local_n, local_a, local_b, local_result, global_result;
   int i, my_rank, comm_sz;
@@ -34,12 +46,11 @@ int main(void) {
   double* h = (double*) malloc(sizeof(double));
   int*    n = (int*)    malloc(sizeof(int));
   
-  MPI_Init(NULL, NULL);                                 /* Start up MPI */
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);              /* Get the number of processes */
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);              /* Get my rank among all the processes */
+  MPI_Init(NULL, NULL);                                 /* start up MPI                         */
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);              /* get the number of processes          */
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);              /* get my rank among all the processes  */
 
-  if(my_rank==0) {
-    //pprompt for a,b,n
+  if(my_rank==0) {                                      /* prompts for a, b, n and computes h   */
     cout << "Enter the beginning of the integration interval [a,b] 'a':\n";
     cin >> *a;
     cout << "Enter the end of the integration interval [a,b] 'b':\n";
@@ -49,35 +60,49 @@ int main(void) {
     *h=(*b-*a)/(*n);
   }
 
-  MPI_Bcast(a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);       /* broadcast inputs to all nodes        */
   MPI_Bcast(b, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(h, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(n, 1, MPI_INT,    0, MPI_COMM_WORLD);
 
+  local_n = *n/comm_sz;
+  local_a = *a+my_rank*local_n*(*h);
+  local_b = local_a+local_n*(*h);
 
-  cout << "process " << my_rank << " h: " << *h << "\n";
-  local_n=*n/comm_sz;
-  cout << "process " << my_rank << " local_n: " << local_n << "\n";
-  local_a=*a+my_rank*local_n*(*h);
-  cout << "process " << my_rank << " local_a: " << local_a << "\n";
-  local_b=local_a+local_n*(*h);
-  cout << "process " << my_rank << " local_b: " << local_b << "\n";
+  cout << "process " << my_rank << " local_n: "         /* verbose output needs to be           */
+    << local_n << "\n";                                 /* taken care of                        */
+  cout << "process " << my_rank << " local_a: "
+    << local_a << "\n";
+  cout << "process " << my_rank << " local_b: "
+    << local_b << "\n";
 
-  local_result=0;
-  p=local_a;
-  q=p+(local_b-local_a)/local_n;
-  local_h=(q-p)/2;
+  p = local_a;                                          /* calculates the integral result for   */
+  q = p+(local_b-local_a)/local_n;                      /* each local process                   */
+  local_h = (q-p)/2;
+  local_result = 0;
   for(i=0; i<local_n; i++) {
     local_result+=simpson(p,q,local_h);
     p=q;
     q=p+(local_b-local_a)/local_n;
   }
 
-  MPI_Reduce(&local_result, &global_result, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-  if (my_rank==0) {
+  MPI_Reduce(&local_result, &global_result, 1,          /* sums the results across nodes and    */
+      MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);          /* puts the final result in process 0   */
+
+  if (my_rank==0) {                                     /* outputs the answer                   */
     cout << "The integral is: " << global_result << "\n";
   }
 
-  MPI_Finalize();
+  MPI_Finalize();                                       /* kills mpi                            */
   return 0;
 }
+// -----------------------------------------------------------------
+
+/*
+ * questions to ask:
+ * can I calculate local_h each time, this elevitaes problem of odd divisors
+ *
+ * do i have to message pass the boundaries?
+ *
+ * thigns to do:  add -verbose and output what is wanted on the handout
+ */
