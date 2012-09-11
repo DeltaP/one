@@ -31,29 +31,22 @@ double f_x(double x) {
 
 
 // -----------------------------------------------------------------
-// computes the volume of one element
+// performs the sum required by the simpson rule
 double simpson (double local_a, int n, double local_h, int count, bool v, string& out) {
   double integral, x;
   int coefficient;
 
+  if ( (count == 0) || (count == n) ) { coefficient = 1; }
+  else if (count % 2 == 0)            { coefficient = 2; }
+  else                                { coefficient = 4; }
+
   x = local_a + count * local_h;
-
-  if ( (count == 0) || (count == n) ) {
-    coefficient = 1;
-  }
-  else if (count % 2 == 0) {
-    coefficient = 2;
-  }
-  else {
-    coefficient = 4;
-  }
-
   integral = (local_h/3)*coefficient*f_x(x);
 
   if (v == true) {
     ostringstream convert;
     convert << coefficient;
-    out = out + convert.str() + " ";
+    out += convert.str() + " ";
   }
 
   return integral;
@@ -83,12 +76,12 @@ int main(int argc, char *argv[]) {
   if (argc < 4) {                                       /* too few arguments aborts the program */
     cleanup("Error:  Too few arguments");
   }
-  if (argc == 4) {                                      /* option to run with a b n as inputs   */
+  else if (argc == 4) {                                      /* option to run with a b n as inputs   */
     a = strtod(argv[1], NULL);
     b = strtod(argv[2], NULL);
     n = atoi(argv[3]);
   }
-  if (argc == 5) {                                      /* option to run with a b n as inputs   */
+  else if (argc == 5) {                                      /* option to run with a b n as inputs   */
     flag = argv[1];
     if (flag.compare("-verbose") != 0) {
       cleanup("Error:  Wrong flag, only '-verbose' supported");
@@ -100,7 +93,7 @@ int main(int argc, char *argv[]) {
     b = strtod(argv[3], NULL);
     n = atoi(argv[4]);
   }
-  if (argc > 5) {                                       /* too many arguments aborts the program*/
+  else if (argc > 5) {                                       /* too many arguments aborts the program*/
     cleanup("Error:  Too many arguments");
   }
 
