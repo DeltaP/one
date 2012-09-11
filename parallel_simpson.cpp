@@ -1,4 +1,5 @@
 /*
+ * Gregory Petropoulos
  * This is the parallel version of the Simpson Progra
  * To compile:  mpicxx -g -Wall -std=c99 -o parallel_simpson parallel_simpson.cpp
  * To run:  mpiexec -n 2 ./parallel_simpson
@@ -29,7 +30,7 @@ double simpson (double local_p, double local_q, double h) {
   double integral, r;
 
   r=local_p+h;
-  integral = (h/3)*(f_x(local_p)+4*f_x(r)+f_x(local_q));
+  integral = (h/3) * ( f_x(local_p) + 4*f_x(r) + f_x(local_q) );
 
   return integral;
 }
@@ -115,9 +116,9 @@ int main(int argc, char *argv[]) {
     if (my_rank == 0) {                                 /* each processor for -verbose flag     */
       int source;
 
-      cout << "Process 0" << " local_a:  " << local_a << endl;
-      cout << "Process 0" << " local_b:  " << local_b << endl;
-      cout << "Process 0" << " local_n:  " << local_n << endl;
+      cout << "Process 0 local_a:  " << local_a << endl;
+      cout << "Process 0 local_b:  " << local_b << endl;
+      cout << "Process 0 local_n:  " << local_n << endl;
 
       for (source = 1; source < comm_sz; source++) {
         MPI_Recv(&local_a, 1, MPI_DOUBLE, source, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
