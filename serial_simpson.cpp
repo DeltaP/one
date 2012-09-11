@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <iostream>
 using namespace std;
@@ -68,17 +69,17 @@ int main(int argc, char *argv[]) {
     cleanup("Error:  Too many arguments");
   }
 
-  result=0;                                             /* calculates the integral result       */
-  p=a;
-  q=p+(b-a)/n;
-  h=(q-p)/2;
-  for(i=0; i<n; i++) {
-    result+=simpson(p,q,h);
-    p=q;
-    q=p+(b-a)/n;
+  result = 0;                                           /* calculates the integral result       */
+  p = a;
+  q = p+(b-a)/n;
+  h = (q-p)/2;
+  for (i = 0; i < n; i++) {
+    result += simpson(p,q,h);
+    p = q;
+    q = p+(b-a)/n;
   }
 
-  cout << "The integral is: " << result << "\n";        /* outputs the answer                   */
+  cout << "The integral is: " << result << endl;        /* outputs the answer                   */
 
   cleanup("Program Complete");                          /* terminates the program               */
   return 0;

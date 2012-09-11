@@ -34,7 +34,7 @@ double simpson (double local_p, double local_q, double h) {
   double integral, r;
 
   r=local_p+h;
-  integral = (h/3) * ( f_x(local_p) + 4*f_x(r) + f_x(local_q) );
+  integral = (h/3)*(f_x(local_p)+4*f_x(r)+f_x(local_q));
 
   return integral;
 }
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (my_rank==0) {                                     /* outputs the answer                   */
-    cout << "The integral is: " << global_result << "\n";
+    cout << "The integral is: " << global_result << endl;
   }
 
   cleanup(my_rank, "Program Complete");                 /* terminates the program               */
