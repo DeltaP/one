@@ -1,15 +1,27 @@
-\documentclass[a4paper,12pt]{article}
+\documentclass[11pt,a4paper,oneside]{report}
 
 \begin{document}
+\title{HPSC Assignment 1}
+\author{Gregory Petropoulos}
+\date{September 12, 2012}
+\maketitle
 
 \section{Tree reduce pseudocode}
 
+I chose to do problem 1.3:
 
+\texttt{
+pseudocode goes here
+}
 
 \section{Ring "Hello World"}
 
 This program passes a message to process $ (i+1) \%p $ and wraps around such that the highest process sends a message to process zero.  I tested this program by running with a variety of process numbers including running with only one process.  I believe the implementation is correct because every process sends a message to the correct process and recieves from the correct process.  The program should send first and then recieve because otherwise all the processors will be waiting for a message that never comes and the program will hang.  When the program is run on one processor that processor sends a message to itself.  Since there was no mention of ordering the output in any particular way I allowed the output to be non deterministic.  Output is reported such that, if the program is run on two cores, the second core will print a greeting from the first core like so:  \texttt{Greetings from process 0 of 2 | reported by process 1 of 2}.
 
 \section{Simpson's Rule}
+
+This program calculateds the integral of a function numerically over an integral [a,b] using Simpson's Rule.  I read in a, b, n, and possibly a -verbose flag from the command line.  If too few, too many, or the wrong flag is provided the prgram will terminate and print an appropriate error message.  If the users choice of processor numbers, interval, and number of integration steps results in the program not performing in a way that it doesn't integrate the right range a warning is issued.  I chose to do this instead of restricting the program to a nice p/n because I found that usually the result was still very close.
+
+I tested this program by calculating a variety of functions over a variety of intervals using different process numbers and number of integration interval.  
 
 \end{document}
