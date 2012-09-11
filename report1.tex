@@ -1,0 +1,15 @@
+\documentclass[a4paper,12pt]{article}
+
+\begin{document}
+
+\section{Tree reduce pseudocode}
+
+
+
+\section{Ring "Hello World"}
+
+This program passes a message to process $ (i+1) \%p $ and wraps around such that the highest process sends a message to process zero.  I tested this program by running with a variety of process numbers including running with only one process.  I believe the implementation is correct because every process sends a message to the correct process and recieves from the correct process.  The program should send first and then recieve because otherwise all the processors will be waiting for a message that never comes and the program will hang.  When the program is run on one processor that processor sends a message to itself.  Since there was no mention of ordering the output in any particular way I allowed the output to be non deterministic.  Output is reported such that, if the program is run on two cores, the second core will print a greeting from the first core like so:  \texttt{Greetings from process 0 of 2 | reported by process 1 of 2}.
+
+\section{Simpson's Rule}
+
+\end{document}

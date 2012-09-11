@@ -3,3 +3,5 @@ serial_simpson
 parallel_simpson
 
 *.dSYM
+*.aux
+*.ps
