@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
 #include <iostream>
@@ -15,7 +16,7 @@ using namespace std;
 double f_x(double x) {
   double value;
 
-  value=2*pow(x,5)-15*pow(x,3);
+  value=2*pow(x,5)-pow(x,4)+5*pow(x,3)-10*pow(x,2)+15*x-3;
   return value;
 }
 // -----------------------------------------------------------------
@@ -37,72 +38,109 @@ double simpson (double local_p, double local_q, double h) {
 
 
 // -----------------------------------------------------------------
+// Ends the program on an error and prints message to node 0
+void cleanup (int my_rank, const char *message) {
+  if (my_rank==0) {printf("%s\n",message);}
+  MPI_Finalize();                                       /* kills mpi                            */
+  exit(0);
+}
+// -----------------------------------------------------------------
+
+
+
+// -----------------------------------------------------------------
 // the main program
-int main(void) {
-  double p, q, local_h, local_n, local_a, local_b, local_result, global_result;
-  int i, my_rank, comm_sz;
-  double* a = (double*) malloc(sizeof(double));
-  double* b = (double*) malloc(sizeof(double));
-  double* h = (double*) malloc(sizeof(double));
-  int*    n = (int*)    malloc(sizeof(int));
+int main(int argc, char *argv[]) {
+  double a, b, h, p, q, local_h, local_n, local_a, local_b, local_result, global_result;
+  int i, n, my_rank, comm_sz;
+  bool verbose = false;
+  string flag;
   
-  MPI_Init(NULL, NULL);                                 /* start up MPI                         */
+  MPI_Init(&argc, &argv);                               /* start up MPI                         */
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);              /* get the number of processes          */
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);              /* get my rank among all the processes  */
 
-  if(my_rank==0) {                                      /* prompts for a, b, n and computes h   */
-    cout << "Enter the beginning of the integration interval [a,b] 'a':\n";
-    cin >> *a;
-    cout << "Enter the end of the integration interval [a,b] 'b':\n";
-    cin >> *b;
-    cout << "Enter the number of intervals 'n':\n";
-    cin >> *n;
-    *h=(*b-*a)/(*n);
+  if (argc < 4) {                                       /* too few arguments aborts the program */
+    cleanup(my_rank, "Error:  Too few arguments");
+  }
+  if (argc == 4) {                                      /* option to run with a b n as inputs   */
+    a = strtod(argv[1], NULL);
+    b = strtod(argv[2], NULL);
+    n = atoi(argv[3]);
+  }
+  if (argc == 5) {                                      /* option to run -verbose               */
+    flag = argv[1];
+    if (flag.compare("-verbose") != 0) {
+      cleanup(my_rank, "Error:  Wrong flag, only '-verbose' supported");
+    }
+    else if (flag.compare("-verbose") == 0) {           /* not optimal for one flag went with   */
+      verbose = true;                                   /* general approach                     */
+    }
+    a = strtod(argv[2], NULL);
+    b = strtod(argv[3], NULL);
+    n = atoi(argv[4]);
+  }
+  if (argc > 5) {                                       /* too many arguments aborts the program*/
+    cleanup(my_rank, "Error:  Too many arguments");
   }
 
-  MPI_Bcast(a, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);       /* broadcast inputs to all nodes        */
-  MPI_Bcast(b, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(h, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(n, 1, MPI_INT,    0, MPI_COMM_WORLD);
+  h = (b-a)/n;                                          /* computs local interval               */
+  local_n = n/comm_sz;
+  local_a = a+my_rank*local_n*h;
+  local_b = local_a+local_n*h;
 
-  local_n = *n/comm_sz;
-  local_a = *a+my_rank*local_n*(*h);
-  local_b = local_a+local_n*(*h);
-
-  cout << "process " << my_rank << " local_n: "         /* verbose output needs to be           */
-    << local_n << "\n";                                 /* taken care of                        */
-  cout << "process " << my_rank << " local_a: "
-    << local_a << "\n";
-  cout << "process " << my_rank << " local_b: "
-    << local_b << "\n";
+  if (local_b > b) {                                    /* issues a warning for bad [a,b] n p   */
+    cout << "Warning:  A local interval on processor " <<
+      my_rank << " has exceeded the integration bounds" << endl;
+  }
+  if ( (my_rank == (comm_sz-1)) && (local_b < b) ) {
+    cout << "Warning:  A local interval on processor " <<
+      my_rank << " has not reached the end of the range" << endl;
+  }
 
   p = local_a;                                          /* calculates the integral result for   */
   q = p+(local_b-local_a)/local_n;                      /* each local process                   */
   local_h = (q-p)/2;
   local_result = 0;
-  for(i=0; i<local_n; i++) {
-    local_result+=simpson(p,q,local_h);
-    p=q;
-    q=p+(local_b-local_a)/local_n;
+  for (i = 0; i < local_n; i++) {
+    local_result += simpson(p,q,local_h);
+    p = q;
+    q = p+(local_b-local_a)/local_n;
   }
 
   MPI_Reduce(&local_result, &global_result, 1,          /* sums the results across nodes and    */
       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);          /* puts the final result in process 0   */
 
+  if (verbose == true) {                                /* prints out a list of x values ran on */
+    if (my_rank == 0) {                                 /* each processor for -verbose flag     */
+      int source;
+
+      cout << "Process 0" << " local_a:  " << local_a << endl;
+      cout << "Process 0" << " local_b:  " << local_b << endl;
+      cout << "Process 0" << " local_n:  " << local_n << endl;
+
+      for (source = 1; source < comm_sz; source++) {
+        MPI_Recv(&local_a, 1, MPI_DOUBLE, source, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&local_b, 1, MPI_DOUBLE, source, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&local_n, 1, MPI_DOUBLE, source, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        cout << "Process " << source << " local_a:  " << local_a << endl;
+        cout << "Process " << source << " local_b:  " << local_b << endl;
+        cout << "Process " << source << " local_n:  " << local_n << endl;
+      }
+    }
+    else {
+      MPI_Send(&local_a, 1, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);
+      MPI_Send(&local_b, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
+      MPI_Send(&local_n, 1, MPI_DOUBLE, 0, 3, MPI_COMM_WORLD);
+    }
+  }
+
   if (my_rank==0) {                                     /* outputs the answer                   */
     cout << "The integral is: " << global_result << "\n";
   }
 
-  MPI_Finalize();                                       /* kills mpi                            */
+  cleanup(my_rank, "Program Complete");                 /* terminates the program               */
   return 0;
 }
 // -----------------------------------------------------------------
-
-/*
- * questions to ask:
- * can I calculate local_h each time, this elevitaes problem of odd divisors
- *
- * do i have to message pass the boundaries?
- *
- * thigns to do:  add -verbose and output what is wanted on the handout
- */
