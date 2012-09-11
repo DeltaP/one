@@ -1,8 +1,12 @@
 /*
  * Gregory Petropoulos
- * This is the parallel version of the Simpson Progra
+ *
+ * This is the parallel version of the Simpson Integration Program
+ *
  * To compile:  mpicxx -g -Wall -std=c99 -o parallel_simpson parallel_simpson.cpp
- * To run:  mpiexec -n 2 ./parallel_simpson
+ * To run:  mpiexec -n 2 ./parallel_simpson [-verbose] <a> <b> <n>
+ *          <> -> mandatory
+ *          [] -> optional
  */
 
 #include <stdio.h>
